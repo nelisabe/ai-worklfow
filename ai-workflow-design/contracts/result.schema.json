@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai-workflow-design:result:v1",
+  "title": "Compact agent stage result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["task_id", "attempt_id", "role", "snapshot", "status", "summary", "artifacts", "evidence", "issues", "next_action"],
+  "properties": {
+    "task_id": {"type":"string", "minLength":1, "maxLength":128},
+    "attempt_id": {"type":"string", "minLength":1, "maxLength":128},
+    "role": {"$ref":"#/$defs/role"},
+    "snapshot": {"type":["string","null"], "minLength":1, "maxLength":256},
+    "status": {"enum":["success","blocked","failed"]},
+    "summary": {"type":"string", "minLength":1, "maxLength":600},
+    "artifacts": {
+      "type":"array", "maxItems":8,
+      "items": {
+        "type":"object", "additionalProperties":false, "required":["ref","kind"],
+        "properties": {"ref":{"$ref":"#/$defs/ref"},"kind":{"type":"string","minLength":1,"maxLength":64}}
+      }
+    },
+    "evidence": {
+      "type":"array", "maxItems":8,
+      "items": {
+        "type":"object", "additionalProperties":false, "required":["ref","claim","outcome"],
+        "properties": {
+          "ref":{"$ref":"#/$defs/ref"},
+          "claim":{"type":"string","minLength":1,"maxLength":180},
+          "outcome":{"enum":["passed","expected_failure","failed","not_run","not_applicable","observed"]}
+        }
+      }
+    },
+    "issues": {
+      "type":"array", "maxItems":6,
+      "items": {
+        "type":"object", "additionalProperties":false,
+        "required":["id","severity","blocking","summary","ref"],
+        "properties": {
+          "id":{"type":"string","minLength":1,"maxLength":128},
+          "severity":{"enum":["critical","major","minor","info"]},
+          "blocking":{"type":"boolean"},
+          "summary":{"type":"string","minLength":1,"maxLength":300},
+          "ref":{"anyOf":[{"$ref":"#/$defs/ref"},{"type":"null"}]}
+        }
+      }
+    },
+    "next_action": {
+      "type":"object", "additionalProperties":false, "required":["type","owner","reason"],
+      "properties": {
+        "type":{"enum":["delegate","retry","clarify","complete","none"]},
+        "owner":{"anyOf":[{"$ref":"#/$defs/role"},{"enum":["user","runtime"]}]},
+        "reason":{"type":"string","minLength":1,"maxLength":300}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if":{"properties":{"status":{"const":"success"}}},
+      "then":{"properties":{"issues":{"items":{"properties":{"blocking":{"const":false}}}}}}
+    }
+  ],
+  "$defs": {
+    "role":{"enum":["orchestrator","code-researcher","specification-engineer","software-architect","test-engineer","backend-developer","independent-reviewer","workspace-operator"]},
+    "ref":{"type":"string","minLength":1,"maxLength":512}
+  }
+}

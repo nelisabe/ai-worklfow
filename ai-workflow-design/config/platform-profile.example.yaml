@@ -1,0 +1,111 @@
+# DESIGN TEMPLATE ONLY. Not a native configuration for Codex or another runtime.
+# A deployment adapter must reject unresolved values and prove each enforcement claim.
+schema_version: 1
+enabled: false
+mode: strict
+default_tool_decision: deny
+default_file_decision: deny
+
+adaptation_required:
+  runtime_adapter: null
+  identity_provider: null
+  canonical_project_root: null
+  snapshot_store: null
+  artifact_store: null
+  state_store: null
+  isolated_runner: null
+  openspec_version_and_schema: null
+  accepted_spec_paths: []
+  active_change_paths: []
+  production_paths: []
+  test_and_fixture_paths: []
+  protected_build_ci_policy_paths: []
+  formatter_config_paths: []
+  command_registry: []
+  model_registry: []
+  retention_policy: null
+  token_and_time_budget_profile: null
+
+context:
+  inherit_full_parent_transcript: false
+  reference_delivery: direct_scoped_artifact_access
+  result_max_utf8_bytes: 8192
+  result_target_tokens: 800
+  orchestrator_artifact_body_access: false
+  preimplementation_test_candidate_access: false
+  reviewer_author_transcript_access: false
+
+retry_limits:
+  transient_tool_retries: 1
+  correction_cycles_per_finding: 2
+  backward_transitions_per_task: 3
+
+roles:
+  orchestrator:
+    tools: [delegate, status, state.get, state.transition, user.clarify]
+    filesystem: none
+    delegated_roles: [code-researcher, specification-engineer, software-architect, test-engineer, backend-developer, independent-reviewer, workspace-operator]
+    model_profile: compact-control
+  code-researcher:
+    tools: [source.read, source.search, git.read, ide.read, artifact.read, artifact.publish]
+    write_zone: own_report_via_service_only
+    skills: [change-walkthrough_on_explicit_request]
+    model_profile: code-search
+  specification-engineer:
+    tools: [source.read, source.search, git.read, artifact.read, artifact.publish, source.edit_spec, runner.spec_validate]
+    write_zone: assigned_openspec_proposal_and_requirements
+    model_profile: requirements-design
+  software-architect:
+    tools: [source.read, source.search, git.read, ide.read, artifact.read, artifact.publish, source.edit_design]
+    write_zone: assigned_openspec_design_and_tasks
+    skills: [scala_architecture_principles_when_applicable]
+    model_profile: requirements-design
+  test-engineer:
+    tools: [source.read, source.search, git.read, ide.read, source.edit_tests, artifact.read, artifact.publish, runner.compile, runner.test, runner.format_check, runner.format_tests]
+    write_zone: assigned_tests_and_fixtures
+    skills: [scala-fp-conventions_when_applicable]
+    model_profile: scala-authoring
+  backend-developer:
+    tools: [source.read, source.search, git.read, ide.read, source.edit_production, artifact.read, artifact.publish, runner.compile, runner.test, runner.format_check, runner.format_production]
+    write_zone: assigned_production
+    skills: [scala-fp-conventions_when_applicable]
+    model_profile: scala-authoring
+  independent-reviewer:
+    tools: [source.read, source.search, git.read, ide.read, artifact.read, artifact.publish, runner.compile, runner.test, runner.format_check]
+    write_zone: own_report_via_service_only
+    skills: [scala-fp-conventions_review_mode_when_applicable]
+    model_profile: critical-review
+  workspace-operator:
+    tools: [workspace.status, workspace.snapshot, workspace.diff_ref, artifact.index, artifact.read_scoped, artifact.publish, bundle.integrate_verified, openspec.mark_tasks_verified]
+    write_zone: operational_artifacts_only
+    model_profile: compact-control
+
+enforcement_required:
+  separate_role_identities: true
+  filesystem_isolation: true
+  path_canonicalization_and_link_defense: true
+  no_arbitrary_shell_eval_or_mcp_execute: true
+  readonly_source_mount_in_runner: true
+  runner_private_outputs_and_caches: true
+  no_host_credentials_or_sockets: true
+  network_default_deny: true
+  publisher_checks_original_producer_grants: true
+  publisher_compare_and_swap_base: true
+  test_manifest_locked_before_implementation: true
+  write_grants_bound_to_phase_and_attempt: true
+  scaffold_grant_excludes_business_implementation: true
+  dependent_grants_revoked_on_invalidation: true
+  checks_bound_to_content_and_environment: true
+  authenticated_receipts: true
+  state_gates_checked_outside_model: true
+  audit_denials_and_mutations: true
+
+completion_requires:
+  - accepted_spec_and_design_refs_or_verified_reuse
+  - locked_tests_before_new_business_logic
+  - behavioral_red_for_new_behavior
+  - unchanged_or_independently_reapproved_test_oracles
+  - required_checks_passed_on_exact_candidate
+  - independent_reviewer_accept_on_exact_candidate
+  - no_blocking_issues
+  - no_unauthorized_paths
